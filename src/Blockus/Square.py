@@ -26,7 +26,7 @@ class Color(Enum):
     RED = 1
     BLUE = 2
 
-
-for c in Color:
-    print(c)
-print (len(Color))
+if __name__ == "__main__":
+    for c in Color:
+        print(c)
+    print (len(Color))

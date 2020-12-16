@@ -5,10 +5,7 @@ Created on Nov 20, 2020
 '''
 
 from Blockus.Square import Square, Color
-from Blockus.Piece import Piece
 from Blockus.PieceDefinitions import createPieces
-from Blockus.Player import Player, AgentType
-from copy import deepcopy
 from random import randint
 
 
@@ -90,6 +87,8 @@ class Board():
                 self.addFill(square)
             return True
         return False    
+    
+    
     
     
 #     # 'move' in form of (piece, permutation, x, y)
