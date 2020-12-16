@@ -26,3 +26,7 @@ class Color(Enum):
     RED = 1
     BLUE = 2
 
+
+for c in Color:
+    print(c)
+print (len(Color))

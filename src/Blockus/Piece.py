@@ -38,18 +38,18 @@ class Piece():
         self.height = height
         self.color = color
         self.permutations = [] # dont permute here so there isnt recursion wackiness
-        self.symmetry = []
+        #self.symmetry = []
         
     
     # TODO: Check for reference weirdness
     def copy(self):
         # dont set permutations on a copy
         p = Piece(deepcopy(self.points), self.width, self.height, self.color);
-        p.symmetry = self.symmetry
+#         p.symmetry = self.symmetry
         return p
     
-    def addSymmetry(self, symmetry):
-        self.symmetry.append(symmetry)
+#     def addSymmetry(self, symmetry):
+#         self.symmetry.append(symmetry)
     
     def size(self):
         return len(self.points)      
@@ -115,7 +115,10 @@ class Piece():
 
     
                     
-    
+    '''
+    fills the results list with every permutation (rotation, reflection) of the piece
+    with no duplicates 
+    '''
     def permute(self, f):
         results = []
             

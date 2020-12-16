@@ -7,8 +7,9 @@ Created on Nov 20, 2020
 from Blockus.Square import Square, Color
 from Blockus.Piece import Piece
 from Blockus.PieceDefinitions import createPieces
-from Blockus.Player import Player
+from Blockus.Player import Player, AgentType
 from copy import deepcopy
+from random import randint
 
 
 class Board():
@@ -19,7 +20,9 @@ class Board():
 
     def __init__(self, size):
         self.size = size
-        self.board = []
+        self.board = [] # list of Square objects representing the board
+        self.filledRed = [] #list Square objects which are filled with RED
+        self.filledBlue = [] #filled with BLUE
         # fill the board
         for y in range(size):
             for x in range(size):
@@ -46,6 +49,17 @@ class Board():
         return self.board[(self.size*y) + x]
     
     
+    
+    def addFill(self, square):
+        if square.fillColor == Color.RED:
+            self.filledRed.append(square)
+        elif square.fillColor == Color.BLUE:
+            self.filledBlue.append(square)
+        else:
+            print("unknown color")
+    
+    
+    
     def isValidMove(self, piece, x, y):
         touches_corner = False
         for (px,py) in piece.points:
@@ -67,14 +81,26 @@ class Board():
         return touches_corner
                 
                 
-    def makeMove(self, player, piece, x, y):    
-        if self.isValidMove(piece, x, y):
+    def makeMove(self, piece, x, y, isFirst):
+        #TODO: remove valid move check for optimization     
+        if self.isValidMove(piece, x, y) or isFirst:
             for (px,py) in piece.points:
                 square = self.getSquare(x + px, y + py)
                 square.fillColor = piece.color
+                self.addFill(square)
             return True
         return False    
-        
+    
+    
+#     # 'move' in form of (piece, permutation, x, y)
+#     def unmakeMove(self, move, player):
+#         for (x,y) in move[1].points:
+#             square = self.getSquare(x + move[2], y + move[3])
+#             if square is not None:
+#                 square.fillColor = None
+#                 player.filledSquares.remove(square)
+    
+   
     
     # valid move returned in the form of (piece, permutation, x, y)
     def getAllValidMoves(self, pieces):
@@ -93,6 +119,69 @@ class Board():
      
         return valid_moves
     
+    
+    '''
+    returns the number of filled squares for 'color'
+    '''
+    def evaluateScore(self, color):
+        if color == Color.BLUE:
+            return len(self.filledBlue)
+        elif color == Color.RED:
+            return len(self.filledRed)
+        else:
+            print("unknown color")
+            return 0
+        
+     
+    #TODO: make board variable that stores open corners so we dont recalculate every time?
+    def evaluateCorners(self, color):
+        corners = 0
+        
+        if color == Color.BLUE:
+            for square in self.filledBlue:
+                for cornerN in square.cornerNeighbors:
+                    # if corner square not filled
+                    if cornerN.fillColor is None:
+                        validCorner = True
+                        for sideN in cornerN.sideNeighbors:
+                            if sideN.fillColor == Color.BLUE:
+                                validCorner = False
+                                break
+                        if validCorner:
+                            corners += 1
+            return corners
+        
+        elif color == Color.RED:
+            for square in self.filledRED:
+                for cornerN in square.cornerNeighbors:
+                    # if corner square not filled
+                    if cornerN.fillColor is None:
+                        validCorner = True
+                        for sideN in cornerN.sideNeighbors:
+                            if sideN.fillColor == Color.RED:
+                                validCorner = False
+                                break
+                        if validCorner:
+                            corners += 1
+            return corners
+        else:
+            print("unknown color")
+            return 0
+                
+    
+    '''
+    duplicates the board with no reference issues
+    '''
+    def duplicate(self):
+        b = Board(self.size)
+        for square in self.board:
+            dupSquare = b.getSquare(square.x, square.y)
+            dupSquare.fillColor = square.fillColor
+            b.addFill(dupSquare)
+        return b
+            
+            
+            
     def __str__(self):
         st = ""
         for y in range(self.size -1, -1, -1):
@@ -113,19 +202,28 @@ class Board():
             
 if __name__ == "__main__":
     b = Board(14)        
-    p = createPieces(Color.BLUE) 
+    p = createPieces(Color.BLUE)
     b.makeMove(p[0], 0, 0, True)
+    p.remove(p[0])
     valid_moves = b.getAllValidMoves(p)
-    #valid_moves = t[0]
-    f = open("results.txt", "w")
-    for (pc,pm,x,y) in valid_moves:
-        board = Board(14)        
-        board.makeMove(p[0], 0, 0, True)
-        board.makeMove(pm, x, y, False)
-        f.write(str(board))
-   # f.write("{} configurations checked".format(t[1]))
-    f.close()
-    print(len(valid_moves), "valid moves found")           
+    idx = randint(0, len(valid_moves))
+    move = valid_moves[idx]
+    b.makeMove(move[1], move[2], move[3], False)
+    #print(b.evaluateCorners(Color.BLUE))
+    print(b)
+    print(b.evaluateCorners(Color.BLUE), " corners")
+    
+#     valid_moves = b.getAllValidMoves(p)
+#     #valid_moves = t[0]
+#     f = open("results.txt", "w")
+#     for (pc,pm,x,y) in valid_moves:
+#         board = deepcopy(b)#Board(14)        
+#         board.makeMove(p, p[0], 0, 0, True)
+#         board.makeMove(pm, x, y, False)
+#         f.write(str(board))
+#    # f.write("{} configurations checked".format(t[1]))
+#     f.close()
+#     print(len(valid_moves), "valid moves found")           
                 
                 
                 

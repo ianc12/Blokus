@@ -4,8 +4,20 @@ Created on Nov 27, 2020
 @author: ian
 '''
 from enum import Enum
+from Blockus.Board import Board
 from Blockus.Piece import Piece
 from Blockus.PieceDefinitions import createPieces
+
+
+class AgentType(Enum):
+    HUMAN = 1
+    MCTS_NORM = 2
+    MCTS_HEURISTIC_CONST = 3
+    MCTS_HEURISTIC_DIFF = 4
+    RANDOM = 5
+
+
+        
 
 class Player():
     '''
@@ -17,8 +29,9 @@ class Player():
         self.color = color
         self.agentType = agentType
         self.pieces = createPieces(self.color)
+        
     
-    def move(self):
+    def move(self, board):
         if (self.agentType == AgentType.HUMAN):
             pass
         elif (self.agentType == AgentType.MCTS_NORM):
@@ -33,32 +46,12 @@ class Player():
             print("unknown agent type, making random move")
 
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-class AgentType(Enum):
-    HUMAN = 1
-    MCTS_NORM = 2
-    MCTS_HEURISTIC_CONST = 3
-    MCTS_HEURISTIC_DIFF = 4
-    RANDOM = 5
     
+    
+
+
+
+
     
     
     
