@@ -18,7 +18,7 @@ def createPieces(color):
     #p.addSymmetry(Symmetry.VERTICAL)
     #p.addSymmetry(Symmetry.ROTATIONAL)
     #p.addSymmetry(Symmetry.VERT_HORIZ)
-    p.permutations = p.permute(Piece.copy)
+    p.permutations = p.permute(Piece.duplicate)
     pieces.append(p)
     
     #2
@@ -29,7 +29,7 @@ def createPieces(color):
     #p.addSymmetry(Symmetry.HORIZONTAL)
     #p.addSymmetry(Symmetry.VERTICAL)
     #p.addSymmetry(Symmetry.VERT_HORIZ)
-    p.permutations = p.permute(Piece.copy)
+    p.permutations = p.permute(Piece.duplicate)
     pieces.append(p)
     
     #I3
@@ -40,7 +40,7 @@ def createPieces(color):
     #p.addSymmetry(Symmetry.HORIZONTAL)
     #p.addSymmetry(Symmetry.VERT_HORIZ)
     #p.addSymmetry(Symmetry.VERTICAL)
-    p.permutations = p.permute(Piece.copy)
+    p.permutations = p.permute(Piece.duplicate)
     pieces.append(p)
     
     #I4
@@ -51,7 +51,7 @@ def createPieces(color):
     #p.addSymmetry(Symmetry.VERT_HORIZ)
     #p.addSymmetry(Symmetry.HORIZONTAL)
     #p.addSymmetry(Symmetry.VERTICAL)
-    p.permutations = p.permute(Piece.copy)
+    p.permutations = p.permute(Piece.duplicate)
     pieces.append(p)
     
     #I5
@@ -62,7 +62,7 @@ def createPieces(color):
     #p.addSymmetry(Symmetry.VERT_HORIZ)
     #p.addSymmetry(Symmetry.HORIZONTAL)
     #p.addSymmetry(Symmetry.VERTICAL)
-    p.permutations = p.permute(Piece.copy)
+    p.permutations = p.permute(Piece.duplicate)
     pieces.append(p)
     
     #L4
@@ -70,7 +70,7 @@ def createPieces(color):
     w = 3
     h = 2
     p = Piece(points, w, h, color)
-    p.permutations = p.permute(Piece.copy)
+    p.permutations = p.permute(Piece.duplicate)
     pieces.append(p)
     
     #L5
@@ -78,7 +78,7 @@ def createPieces(color):
     w = 4
     h = 2
     p = Piece(points, w, h, color)
-    p.permutations = p.permute(Piece.copy)
+    p.permutations = p.permute(Piece.duplicate)
     pieces.append(p)
     
     #Y
@@ -86,7 +86,7 @@ def createPieces(color):
     w = 4
     h = 2
     p = Piece(points, w, h, color)
-    p.permutations = p.permute(Piece.copy)
+    p.permutations = p.permute(Piece.duplicate)
     pieces.append(p)
     
     # N
@@ -94,7 +94,7 @@ def createPieces(color):
     w = 4
     h = 2
     p = Piece(points, w, h, color)
-    p.permutations = p.permute(Piece.copy)
+    p.permutations = p.permute(Piece.duplicate)
     pieces.append(p)
     
     # Z4
@@ -103,7 +103,7 @@ def createPieces(color):
     h = 2
     p = Piece(points, w, h, color)
     #p.addSymmetry(Symmetry.VERT_HORIZ)
-    p.permutations = p.permute(Piece.copy)
+    p.permutations = p.permute(Piece.duplicate)
     pieces.append(p)
     
     # Z5
@@ -112,7 +112,7 @@ def createPieces(color):
     h = 3
     p = Piece(points, w, h, color)
     #p.addSymmetry(Symmetry.VERT_HORIZ)
-    p.permutations = p.permute(Piece.copy)
+    p.permutations = p.permute(Piece.duplicate)
     pieces.append(p)
     
     # Square, O
@@ -124,7 +124,7 @@ def createPieces(color):
     #p.addSymmetry(Symmetry.VERT_HORIZ)
     #p.addSymmetry(Symmetry.HORIZONTAL)
     #p.addSymmetry(Symmetry.VERTICAL)
-    p.permutations = p.permute(Piece.copy)
+    p.permutations = p.permute(Piece.duplicate)
     pieces.append(p)
     
     # +, X
@@ -136,7 +136,7 @@ def createPieces(color):
     #p.addSymmetry(Symmetry.VERT_HORIZ)
     #p.addSymmetry(Symmetry.HORIZONTAL)
     #p.addSymmetry(Symmetry.VERTICAL)
-    p.permutations = p.permute(Piece.copy)
+    p.permutations = p.permute(Piece.duplicate)
     pieces.append(p)
     
     # T4
@@ -145,7 +145,7 @@ def createPieces(color):
     h = 2
     p = Piece(points, w, h, color)
     #p.addSymmetry(Symmetry.HORIZONTAL)
-    p.permutations = p.permute(Piece.copy)
+    p.permutations = p.permute(Piece.duplicate)
     pieces.append(p)
     
     # T5
@@ -154,7 +154,7 @@ def createPieces(color):
     h = 3
     p = Piece(points, w, h, color)
     #p.addSymmetry(Symmetry.HORIZONTAL)
-    p.permutations = p.permute(Piece.copy)
+    p.permutations = p.permute(Piece.duplicate)
     pieces.append(p)
     
     #V3
@@ -162,7 +162,7 @@ def createPieces(color):
     w = 2
     h = 2
     p = Piece(points, w, h, color)
-    p.permutations = p.permute(Piece.copy)
+    p.permutations = p.permute(Piece.duplicate)
     pieces.append(p)
     
     #V5
@@ -170,7 +170,7 @@ def createPieces(color):
     w = 3
     h = 3
     p = Piece(points, w, h, color)
-    p.permutations = p.permute(Piece.copy)
+    p.permutations = p.permute(Piece.duplicate)
     pieces.append(p)
   
     #U
@@ -179,7 +179,7 @@ def createPieces(color):
     h = 2
     p = Piece(points, w, h, color)
     #p.addSymmetry(Symmetry.HORIZONTAL)
-    p.permutations = p.permute(Piece.copy)
+    p.permutations = p.permute(Piece.duplicate)
     pieces.append(p)
     
     #W
@@ -187,7 +187,7 @@ def createPieces(color):
     w = 3
     h = 3
     p = Piece(points, w, h, color)
-    p.permutations = p.permute(Piece.copy)
+    p.permutations = p.permute(Piece.duplicate)
     pieces.append(p)
     
     # P
@@ -195,7 +195,7 @@ def createPieces(color):
     w = 2
     h = 3
     p = Piece(points, w, h, color)
-    p.permutations = p.permute(Piece.copy)
+    p.permutations = p.permute(Piece.duplicate)
     pieces.append(p)
     
     #F
@@ -203,7 +203,7 @@ def createPieces(color):
     w = 3
     h = 3
     p = Piece(points, w, h, color)
-    p.permutations = p.permute(Piece.copy)
+    p.permutations = p.permute(Piece.duplicate)
     pieces.append(p)
     
     

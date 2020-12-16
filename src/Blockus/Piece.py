@@ -42,8 +42,8 @@ class Piece():
         
     
     # TODO: Check for reference weirdness
-    def copy(self):
-        # dont set permutations on a copy
+    def duplicate(self):
+        # dont set permutations on a duplicate
         p = Piece(deepcopy(self.points), self.width, self.height, self.color);
 #         p.symmetry = self.symmetry
         return p
@@ -191,7 +191,7 @@ if __name__ == "__main__":
     p1.reflectVert()
     print(p1)
 #     
-#     pieces = p1.permute(Piece.copy)
+#     pieces = p1.permute(Piece.duplicate)
 #     for p in pieces:
 #         print(p)
 #    p.permute(print)
