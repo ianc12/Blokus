@@ -4,8 +4,8 @@ Created on Nov 27, 2020
 @author: ian
 
 '''
-from Blockus.Piece import Piece
-from Blockus.Square import Color
+from Piece import Piece
+from Square import Color
 
 def createPieces(color):
     pieces = []
@@ -206,7 +206,6 @@ def createPieces(color):
     p.permutations = p.permute(Piece.copy)
     pieces.append(p)
     
-    
     return pieces
 
 
@@ -214,10 +213,17 @@ def createPieces(color):
     
 if __name__ == "__main__":
     p = createPieces(Color.BLUE)
+    l = 0
+    for ps in p:
+        l += len(ps.points)
+    print(l)
+#     F = p[-1]
+#     for ps in F.permutations:
+#         print(ps)
     
-    for x in p:
-        for y in x.permutations:
-            print(y)
+#     for x in p:
+#         for y in x.permutations:
+#             print(y)
 
 
 

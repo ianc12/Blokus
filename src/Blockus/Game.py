@@ -3,12 +3,13 @@ Created on Nov 27, 2020
 
 @author: ian
 '''
-from Blockus.Player import Player, AgentType
-from Blockus.Board import Board
-from Blockus.Square import Color
+from Player import Player, AgentType
+from Board import Board
+from Square import Color
 import sys
 
-
+'''
+'''
 def printUsage():
     print('''Usage: run with 3 args - \n
         boardSize: length of board (borad is a square)\n
@@ -42,13 +43,21 @@ def main():
     
     
     board = Board(int(args[1]))
+
+    # Blue Goes First
     playerBlue = Player(Color.BLUE, getAgentType(args[2]))
     playerRed = Player(Color.RED, getAgentType(args[3]))
     
+    playerBlue.agentMove(board, True)
+    playerRed.agentMove(board, True)
+    print(board)
+    print("\n\n\n")
+    print("_________________________________________________________________________")
+    print("\n\n\n")
     while(True):
-        blueMove = playerBlue.move(board)
-        redMove = playerRed.move(board)
-        if blueMove == False and redMove == False:
+        blueMove = playerBlue.agentMove(board, False)
+        redMove = playerRed.agentMove(board, False)
+        if blueMove == None and redMove == None:
             break;
     
     blueScore = playerBlue.evaluateScore(board)
