@@ -4,11 +4,8 @@ Created on Nov 20, 2020
 @author: ian
 '''
 
-from Blockus.Square import Square, Color
-from Blockus.Piece import Piece
-from Blockus.PieceDefinitions import createPieces
-from Blockus.Player import Player, AgentType
-from duplicate import deepcopy
+from  Square import Square, Color
+from  PieceDefinitions import createPieces
 from random import randint
 
 
@@ -17,7 +14,6 @@ class Board():
     represents a blockus board starting from (x,y) = (0,0) in the bottom left corner
     squares are placed in self.board in row major order
     '''
-
     def __init__(self, size):
         self.size = size
         self.board = [] # list of Square objects representing the board
@@ -80,29 +76,62 @@ class Board():
                     break
         return touches_corner
                 
-                
-    def makeMove(self, piece, x, y, isFirst):
-        #TODO: remove valid move check for optimization     
-        if self.isValidMove(piece, x, y) or isFirst:
+    
+    def makeFirstMove(self, piece, x, y):
+        squares = []
+        for (px,py) in piece.points:
+            squares.append((x + px, y + py))
+
+        # must cover (4,4) on first agentMove
+        if piece.color == Color.BLUE:
             for (px,py) in piece.points:
-                square = self.getSquare(x + px, y + py)
-                square.fillColor = piece.color
-                self.addFill(square)
-            return True
-        return False    
+                s = self.getSquare(x + px, y + py)
+                if s == None or s.fillColor != None:
+                    return False
+            if (4,4) in squares:
+                self.makeMoveOnBoard(piece, x, y)
+                return True
+            else:
+                return False
+        # must cover size-5,size-5
+        elif piece.color == Color.RED:
+            for (px,py) in piece.points:
+                s = self.getSquare(x + px, y + py)
+                if s == None or s.fillColor != None:
+                    return False
+            if (self.size - 5, self.size - 5) in squares:
+                self.makeMoveOnBoard(piece, x, y)
+                return True
+            
+            
+    
+             
+    def makeMoveOnBoard(self, piece, x, y):
+        #TODO: remove valid agentMove check for optimization     
+        #if self.isValidMove(piece, x, y):
+        for (px,py) in piece.points:
+            square = self.getSquare(x + px, y + py)
+            square.fillColor = piece.color
+            self.addFill(square)
+        return True
+#         else:
+#             print("invalid agentMove")
+#             return False  
     
     
-#     # 'move' in form of (piece, permutation, x, y)
-#     def unmakeMove(self, move, player):
-#         for (x,y) in move[1].points:
-#             square = self.getSquare(x + move[2], y + move[3])
+    
+    
+#     # 'agentMove' in form of (piece, permutation, x, y)
+#     def unmakeMove(self, agentMove, player):
+#         for (x,y) in agentMove[1].points:
+#             square = self.getSquare(x + agentMove[2], y + agentMove[3])
 #             if square is not None:
 #                 square.fillColor = None
 #                 player.filledSquares.remove(square)
     
    
     
-    # valid move returned in the form of (piece, permutation, x, y)
+    # valid agentMove returned in the form of (piece, permutation, x, y)
     def getAllValidMoves(self, pieces):
         valid_moves = []
         #num_considerations = 0
@@ -186,16 +215,16 @@ class Board():
         st = ""
         for y in range(self.size -1, -1, -1):
             for a in range(self.size):
-                st += "-----"
+                st += "------"
             st += '\n'
             for x in range(self.size):
                 s = self.getSquare(x, y)
                 if s.fillColor == Color.BLUE:
-                    st += "| B |"
+                    st += "| bb |"
                 elif s.fillColor == Color.RED:
-                    st += "| R |"
+                    st += "| RR |"
                 else:
-                    st += "|   |"
+                    st += "|    |"
             st += '\n'
         return st
             
@@ -203,12 +232,12 @@ class Board():
 if __name__ == "__main__":
     b = Board(14)        
     p = createPieces(Color.BLUE)
-    b.makeMove(p[0], 0, 0, True)
+    b.makeMoveOnBoard(p[0], 0, 0, True)
     p.remove(p[0])
     valid_moves = b.getAllValidMoves(p)
-    idx = randint(0, len(valid_moves))
-    move = valid_moves[idx]
-    b.makeMove(move[1], move[2], move[3], False)
+    idx = randint(0, len(valid_moves) - 1)
+    agentMove = valid_moves[idx]
+    b.makeMoveOnBoard(agentMove[1], agentMove[2], agentMove[3], False)
     #print(b.evaluateCorners(Color.BLUE))
     print(b)
     print(b.evaluateCorners(Color.BLUE), " corners")
@@ -218,8 +247,8 @@ if __name__ == "__main__":
 #     f = open("results.txt", "w")
 #     for (pc,pm,x,y) in valid_moves:
 #         board = deepcopy(b)#Board(14)        
-#         board.makeMove(p, p[0], 0, 0, True)
-#         board.makeMove(pm, x, y, False)
+#         board.makeMoveOnBoard(p, p[0], 0, 0, True)
+#         board.makeMoveOnBoard(pm, x, y, False)
 #         f.write(str(board))
 #    # f.write("{} configurations checked".format(t[1]))
 #     f.close()

@@ -4,8 +4,8 @@ Created on Nov 20, 2020
 @author: ian
 '''
 from enum import Enum
-from Blockus.Square import Color
 from copy import deepcopy
+from Square import Color
 
 '''
     a piece is a list of origin based (x,y) tuples
