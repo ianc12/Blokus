@@ -4,6 +4,7 @@ Created on Nov 20, 2020
 @author: ian
 '''
 
+#from Piece import Piece
 from  Square import Square, Color
 from  PieceDefinitions import createPieces
 from random import randint
@@ -19,11 +20,13 @@ class Board():
         self.board = [] # list of Square objects representing the board
         self.filledRed = [] #list Square objects which are filled with RED
         self.filledBlue = [] #filled with BLUE
+        self.openSquares = []
         # fill the board
         for y in range(size):
             for x in range(size):
                 s = Square(x,y)    
                 self.board.append(s)
+                self.openSquares.append(s)
         # calculate each square's neigbors
         for square in self.board:
             for dX in range(-1,2):
@@ -47,6 +50,7 @@ class Board():
     
     
     def addFill(self, square):
+        self.openSquares.remove(square)
         if square.fillColor == Color.RED:
             self.filledRed.append(square)
         elif square.fillColor == Color.BLUE:
@@ -137,8 +141,8 @@ class Board():
         #num_considerations = 0
         for piece in pieces:
             for perm in piece.permutations:
-                for x in range(self.size):
-                    for y in range(self.size):
+                for x in range(self.size - (perm.width - 1)): # dont check squares that are not possible
+                    for y in range(self.size - (perm.height - 1)):
                         #TODO: optimize square checking
                         #num_considerations += 1
                         if self.isValidMove(perm, x, y):

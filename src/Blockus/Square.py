@@ -30,6 +30,13 @@ class Color(Enum):
             return "Red"
         else:
             return "Blue"
+    def opp(self):
+        if self == Color.RED:
+            return Color.BLUE
+        else:
+            return Color.RED
+
+
 
 if __name__ == "__main__":
     for c in Color:

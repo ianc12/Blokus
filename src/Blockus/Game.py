@@ -47,6 +47,8 @@ def main():
     # Blue Goes First
     playerBlue = Player(Color.BLUE, getAgentType(args[2]))
     playerRed = Player(Color.RED, getAgentType(args[3]))
+    playerBlue.opponent = playerRed
+    playerRed.opponent = playerBlue
     
     playerBlue.agentMove(board, True)
     playerRed.agentMove(board, True)
@@ -80,4 +82,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    for (i in range(100)):
+        main()
