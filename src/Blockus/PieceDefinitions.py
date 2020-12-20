@@ -9,17 +9,7 @@ from Square import Color
 
 def createPieces(color):
     pieces = []
-    # 1
-    points = [(0,0)]
-    w = 1
-    h = 1
-    p = Piece(points, w, h, color)
-    #p.addSymmetry(Symmetry.HORIZONTAL)
-    #p.addSymmetry(Symmetry.VERTICAL)
-    #p.addSymmetry(Symmetry.ROTATIONAL)
-    #p.addSymmetry(Symmetry.VERT_HORIZ)
-    p.permutations = p.permute(Piece.duplicate)
-    pieces.append(p)
+   
     
     #2
     points = [(0,0), (1,0)]
@@ -206,6 +196,17 @@ def createPieces(color):
     p.permutations = p.permute(Piece.duplicate)
     pieces.append(p)
     
+     # 1
+    points = [(0,0)]
+    w = 1
+    h = 1
+    p = Piece(points, w, h, color)
+    #p.addSymmetry(Symmetry.HORIZONTAL)
+    #p.addSymmetry(Symmetry.VERTICAL)
+    #p.addSymmetry(Symmetry.ROTATIONAL)
+    #p.addSymmetry(Symmetry.VERT_HORIZ)
+    p.permutations = p.permute(Piece.duplicate)
+    pieces.append(p)
     return pieces
 
 
@@ -213,10 +214,10 @@ def createPieces(color):
     
 if __name__ == "__main__":
     p = createPieces(Color.BLUE)
-    l = 0
+    perms = 0
     for ps in p:
-        l += len(ps.points)
-    print(l)
+        perms += len(ps.permutations)
+    print(perms)
 #     F = p[-1]
 #     for ps in F.permutations:
 #         print(ps)

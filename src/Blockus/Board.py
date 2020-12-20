@@ -5,12 +5,16 @@ Created on Nov 20, 2020
 '''
 
 #from Piece import Piece
+import time
 from  Square import Square, Color
 from  PieceDefinitions import createPieces
 from random import randint
 
 
+
 class Board():
+    TIME_IN_VALID = 0
+    TIME_IN_DUP = 0
     '''
     represents a blockus board starting from (x,y) = (0,0) in the bottom left corner
     squares are placed in self.board in row major order
@@ -50,6 +54,8 @@ class Board():
     
     
     def addFill(self, square):
+        if square.fillColor == None:
+            return
         self.openSquares.remove(square)
         if square.fillColor == Color.RED:
             self.filledRed.append(square)
@@ -110,12 +116,12 @@ class Board():
             
     
              
-    def makeMoveOnBoard(self, piece, x, y):
+    def makeMoveOnBoard(self, perm, x, y):
         #TODO: remove valid agentMove check for optimization     
-        #if self.isValidMove(piece, x, y):
-        for (px,py) in piece.points:
+        #if self.isValidMove(perm, x, y):
+        for (px,py) in perm.points:
             square = self.getSquare(x + px, y + py)
-            square.fillColor = piece.color
+            square.fillColor = perm.color
             self.addFill(square)
         return True
 #         else:
@@ -125,7 +131,7 @@ class Board():
     
     
     
-#     # 'agentMove' in form of (piece, permutation, x, y)
+#     # 'agentMove' in form of (perm, permutation, x, y)
 #     def unmakeMove(self, agentMove, player):
 #         for (x,y) in agentMove[1].points:
 #             square = self.getSquare(x + agentMove[2], y + agentMove[3])
@@ -135,8 +141,9 @@ class Board():
     
    
     
-    # valid agentMove returned in the form of (piece, permutation, x, y)
+    # valid agentMove returned in the form of (perm, permutation, x, y)
     def getAllValidMoves(self, pieces):
+        t = time.perf_counter()
         valid_moves = []
         #num_considerations = 0
         for piece in pieces:
@@ -149,7 +156,8 @@ class Board():
                             valid_moves.append((piece, perm, x, y))
                         
                          
-     
+        t2 = time.perf_counter()
+        Board.TIME_IN_VALID += t2-t
         return valid_moves
     
     
@@ -205,12 +213,17 @@ class Board():
     '''
     duplicates the board with no reference issues
     '''
+
     def duplicate(self):
+        t1 = time.perf_counter()
+        
         b = Board(self.size)
         for square in self.board:
             dupSquare = b.getSquare(square.x, square.y)
             dupSquare.fillColor = square.fillColor
             b.addFill(dupSquare)
+        t2 = time.perf_counter()
+        Board.TIME_IN_DUP += t2-t1
         return b
             
             

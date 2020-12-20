@@ -3,9 +3,11 @@ Created on Nov 27, 2020
 
 @author: ian
 '''
-from enum import Enum
+
 import psutil
 import time
+from enum import Enum
+from copy import copy
 from random import randint
 from  Piece import Piece
 from  Square import Color
@@ -16,7 +18,8 @@ from Tree import Node
 
 MAX_TIMEOUT = 30 # seconds
 MIN_FREE_MEM = 100 * 1024 * 1024 # 100 Megabytes
-EXPLORATION_CONSTANT = 0.7 
+EXPLORATION_CONSTANT = 0.7
+NUM_CORES = 4
 
 class Player():
     '''
@@ -50,16 +53,26 @@ class Player():
         self.color = color
         self.agentType = agentType
         self.pieces = createPieces(self.color)
-        self.oppnent = None
+        self.opponent = None
         self.moveNum = 1
         
     
     def agentMove(self, board, isFirst):
         if (self.agentType == AgentType.HUMAN):
             pass
+        
+        
         elif (self.agentType == AgentType.MCTS_NORM):
-            move = self.mctsNormal(board)
-            pass
+            if isFirst:
+                return self.makeRandomFirstMove(board)
+            else:
+                move = self.mctsNormal(board)
+                if move == None:
+                    return None
+                return self.makeMove(board, move)
+        
+        
+        
         elif (self.agentType == AgentType.MCTS_HEURISTIC_CONST):
             pass
         elif (self.agentType == AgentType.MCTS_HEURISTIC_DIFF):
@@ -139,44 +152,98 @@ class Player():
         pass
     
 
+    def getPiecesNotIn(self, l):
+        pieces = []
+        for p in self.pieces:
+            if p not in l:
+                pieces.append(p)
+        return pieces
+        
     
-    def playoutRandomGame(self, board):
-        #starts by assuming we have just made a move
+    
+    def playoutRandomGame(self, node):
+        whosTurn = node.turnColor.opp() #opposite because turnColor is who moved to make this state
+        piecesUsed = copy(node.piecesUsed) #only adding not modifying
+        ourMove = -1 # start with not None so loop executed once for sure
+        theirMove = -1
+        boardCopy = node.state.duplicate()
+        #print(boardCopy)
+        while(True):
+            if whosTurn == self.color:
+                useable_pieces = self.getPiecesNotIn(piecesUsed)
+                valid_moves = boardCopy.getAllValidMoves(useable_pieces)
+                if valid_moves == []:
+                    ourMove = None
+                else:
+                    i = randint(0, len(valid_moves) - 1)
+                    ourMove = valid_moves[i]
+                    piecesUsed.append(ourMove[0])
+                    boardCopy.makeMoveOnBoard(ourMove[1], ourMove[2], ourMove[3])
+                    
+                whosTurn = whosTurn.opp()
+            
+            if whosTurn != self.color:
+                useable_pieces = self.opponent.getPiecesNotIn(piecesUsed)
+                valid_moves = boardCopy.getAllValidMoves(useable_pieces)
+                if valid_moves == []:
+                    theirMove = None
+                else:
+                    i = randint(0, len(valid_moves) - 1)
+                    theirMove = valid_moves[i]
+                    piecesUsed.append(theirMove[0])
+                    boardCopy.makeMoveOnBoard(theirMove[1], theirMove[2], theirMove[3])
+                    
+               
+                whosTurn = whosTurn.opp()
+                
+            if ourMove == None and theirMove == None:
+                #game over
+                break
+        
+        ourScore = boardCopy.evaluateScore(self.color)
+        theirScore = boardCopy.evaluateScore(self.color.opp())
+        #print(boardCopy)
+        
+        if ourScore > theirScore:
+            return 1
+        if ourScore < theirScore:
+            return 0
+        else:
+            return 0.5
         
     
     def mctsNormal(self, board):
-        root = Node(board, None, None)
+        root = Node(board, None, None, self.opponent.color)
         # set initial child layer
         initial_moves = board.getAllValidMoves(self.pieces)
         if initial_moves == []:
             return None
         for move in initial_moves:
             b = board.duplicate()
-            b.makeMoveOnBoard(move)
+            b.makeMoveOnBoard(move[1], move[2], move[3])
             #consider using piece size as first play urgency as initialVal
-            child = Node(b, root, move)
+            child = Node(b, root, move, self.color, initialVal = move[0].size())
             child.piecesUsed.append(move[0])
             root.addChild(child)
-        root.visits += 1
         
+        
+        num_simulations = 0
         startTime = time.perf_counter()
         while(self.resourcesAvailable(startTime)):
             #selection phase
-            currentNode = root.getMctsLeaf()
+            currentNode = Node.getMctsLeaf(root)
+            #print(currentNode)
+           
             
             #expansion phase
-            #opponent must make a move before we caluclate the possible moves
-            opp_useable_pieces = []
-            for piece in self.opponent.pieces:
-                if piece not in currentNode.oppPiecesUsed:
-                    opp_useable_pieces.append(piece)
-            
-            opp_move
-            
             useable_pieces = []
-            for piece in self.pieces:
-                if piece not in currentNode.piecesUsed:
-                    useable_pieces.append(piece)
+            if currentNode.turnColor == self.color:
+                # opponents turn, use their pieces
+                useable_pieces = self.opponent.getPiecesNotIn(currentNode.piecesUsed)
+                
+            else:
+                #our turn, use our pieces
+                useable_pieces = self.getPiecesNotIn(currentNode.piecesUsed)
             
             
             valid_moves = currentNode.state.getAllValidMoves(useable_pieces)
@@ -187,17 +254,26 @@ class Player():
                 # add all substates
                 for move in valid_moves:
                     b = currentNode.state.duplicate()
-                    b.makeMoveOnBoard(move)
-                    child = Node(b, currentNode)
+                    b.makeMoveOnBoard(move[1],move[2],move[3])
+                    child = Node(b, currentNode, move, move[0].color)
                     child.piecesUsed += currentNode.piecesUsed
                     child.piecesUsed.append(move[0])
                     currentNode.addChild(child)
+            
             #simulation phase
-            self.playoutRandomGame(currentNode.state)
-                
+            res = self.playoutRandomGame(currentNode)
+            num_simulations += 1
+            
+            #backpropogate
+            currentNode.backpropogate(res)
+        
         
         #select move
-        
+        node = Node.getMaxFirstLayer(root)
+        move = node.move
+        #Node.delTree(root)
+        print(num_simulations, " simulations executed")
+        return move
          
 
 class AgentType(Enum):
@@ -211,7 +287,26 @@ class AgentType(Enum):
 
 
 if __name__ == "__main__":
-    pass
+    t = time.perf_counter()
+    board = Board(14)
+    playerBlue = Player(Color.BLUE, AgentType.MCTS_NORM)
+    playerRed = Player(Color.RED, AgentType.RANDOM)
+    playerBlue.opponent = playerRed
+    playerRed.opponent = playerBlue
+    
+    playerBlue.agentMove(board, True)
+    redm = playerRed.agentMove(board, True)
+    print(board)
+    playerBlue.agentMove(board, False)
+    print(board)
+    t2 = time.perf_counter()
+    print("program time:", t2-t)
+    print(Board.TIME_IN_VALID, " seconds in valid")
+    print(Board.TIME_IN_DUP, " seconds in dup")
+    
+   
+#     for i in range(100):
+#         print(playerBlue.playoutRandomGame(node))
 
 
 
