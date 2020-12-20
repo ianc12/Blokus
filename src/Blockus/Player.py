@@ -98,7 +98,7 @@ class Player():
     
     #move in form (piece, permutation, x, y)
     def makeMove(self, board, move):
-        board.makeMoveOnBoard(move[1], move[2], move[3])
+        board.makeMoveOnBoard(move)
         self.pieces.remove(move[0])
         self.moveNum += 1
         return move[0]
@@ -131,13 +131,13 @@ class Player():
             for perm in p.permutations:
                 if self.color == Color.RED:
                     #TODO: investigate disadvantage for RED or elimintate based on center control
-                    if board.makeFirstMove(perm, board.size - 5, board.size - 5):
+                    if board.makeFirstMove((p, perm, board.size - 5, board.size - 5) ):
                         self.pieces.remove(p)
                         self.moveNum += 1
                         print("GLHF!")
                         return p
                 else:
-                    if board.makeFirstMove(perm, 4, 4):
+                    if board.makeFirstMove((p,perm, 4, 4)):
                         self.pieces.remove(p)
                         print("GLHF!")
                         self.moveNum += 1
@@ -152,57 +152,64 @@ class Player():
         pass
     
 
+
     def getPiecesNotIn(self, l):
-        pieces = []
-        for p in self.pieces:
-            if p not in l:
-                pieces.append(p)
-        return pieces
+        pieces_used = [l[i][0] for i in range(len(l))]
+        pieces_free = []
+        for piece in self.pieces:
+            if piece not in pieces_used:
+                pieces_free.append(piece)
+        
+        return pieces_free
         
     
     
-    def playoutRandomGame(self, node):
+    def playoutRandomGame(self, node, initialBoard):
         whosTurn = node.turnColor.opp() #opposite because turnColor is who moved to make this state
-        piecesUsed = copy(node.piecesUsed) #only adding not modifying
         ourMove = -1 # start with not None so loop executed once for sure
         theirMove = -1
-        boardCopy = node.state.duplicate()
-        #print(boardCopy)
+        #copy stack to add to it
+        moveStack = copy(node.moveStack)
         while(True):
             if whosTurn == self.color:
-                useable_pieces = self.getPiecesNotIn(piecesUsed)
-                valid_moves = boardCopy.getAllValidMoves(useable_pieces)
+                useable_pieces = self.getPiecesNotIn(moveStack)
+                valid_moves = initialBoard.getAllValidMoves(useable_pieces)
                 if valid_moves == []:
                     ourMove = None
                 else:
                     i = randint(0, len(valid_moves) - 1)
                     ourMove = valid_moves[i]
-                    piecesUsed.append(ourMove[0])
-                    boardCopy.makeMoveOnBoard(ourMove[1], ourMove[2], ourMove[3])
+                    moveStack.append(ourMove)
+                    initialBoard.makeMoveOnBoard(ourMove)
+                    #print(initialBoard)
                     
                 whosTurn = whosTurn.opp()
             
             if whosTurn != self.color:
-                useable_pieces = self.opponent.getPiecesNotIn(piecesUsed)
-                valid_moves = boardCopy.getAllValidMoves(useable_pieces)
+                useable_pieces = self.opponent.getPiecesNotIn(moveStack)
+                valid_moves = initialBoard.getAllValidMoves(useable_pieces)
                 if valid_moves == []:
                     theirMove = None
                 else:
                     i = randint(0, len(valid_moves) - 1)
                     theirMove = valid_moves[i]
-                    piecesUsed.append(theirMove[0])
-                    boardCopy.makeMoveOnBoard(theirMove[1], theirMove[2], theirMove[3])
+                    moveStack.append(theirMove)
+                    initialBoard.makeMoveOnBoard(theirMove)
+                    #print(initialBoard)
+                    
+                whosTurn = whosTurn.opp()
                     
                
-                whosTurn = whosTurn.opp()
                 
             if ourMove == None and theirMove == None:
                 #game over
                 break
         
-        ourScore = boardCopy.evaluateScore(self.color)
-        theirScore = boardCopy.evaluateScore(self.color.opp())
-        #print(boardCopy)
+        ourScore = initialBoard.evaluateScore(self.color)
+        theirScore = initialBoard.evaluateScore(self.color.opp())
+        
+        #return board to initial position
+        initialBoard.unmakeMovesInStack(moveStack)
         
         if ourScore > theirScore:
             return 1
@@ -213,17 +220,14 @@ class Player():
         
     
     def mctsNormal(self, board):
-        root = Node(board, None, None, self.opponent.color)
+        root = Node(None, None, None, self.opponent.color)
         # set initial child layer
         initial_moves = board.getAllValidMoves(self.pieces)
         if initial_moves == []:
             return None
         for move in initial_moves:
-            b = board.duplicate()
-            b.makeMoveOnBoard(move[1], move[2], move[3])
             #consider using piece size as first play urgency as initialVal
-            child = Node(b, root, move, self.color, initialVal = move[0].size())
-            child.piecesUsed.append(move[0])
+            child = Node(move, root, self.color, initialVal=move[0].size())
             root.addChild(child)
         
         
@@ -232,48 +236,44 @@ class Player():
         while(self.resourcesAvailable(startTime)):
             #selection phase
             currentNode = Node.getMctsLeaf(root)
-            #print(currentNode)
-           
-            
+            #make board accurate for current state
+            board.makeMovesInStack(currentNode.moveStack)
+             
             #expansion phase
             useable_pieces = []
             if currentNode.turnColor == self.color:
                 # opponents turn, use their pieces
-                useable_pieces = self.opponent.getPiecesNotIn(currentNode.piecesUsed)
+                useable_pieces = self.opponent.getPiecesNotIn(currentNode.moveStack)
                 
             else:
                 #our turn, use our pieces
-                useable_pieces = self.getPiecesNotIn(currentNode.piecesUsed)
+                useable_pieces = self.getPiecesNotIn(currentNode.moveStack)
             
             
-            valid_moves = currentNode.state.getAllValidMoves(useable_pieces)
+            valid_moves = board.getAllValidMoves(useable_pieces)
             if valid_moves == []:
-                #game in terminal state for this player
+                #game in terminal moveStack for this player
                 pass
             else:
                 # add all substates
                 for move in valid_moves:
-                    b = currentNode.state.duplicate()
-                    b.makeMoveOnBoard(move[1],move[2],move[3])
-                    child = Node(b, currentNode, move, move[0].color)
-                    child.piecesUsed += currentNode.piecesUsed
-                    child.piecesUsed.append(move[0])
+                    child = Node(move, currentNode, move[0].color)
                     currentNode.addChild(child)
             
             #simulation phase
-            res = self.playoutRandomGame(currentNode)
+            res = self.playoutRandomGame(currentNode, board)
             num_simulations += 1
+            #board is returned to initial state
             
             #backpropogate
             currentNode.backpropogate(res)
         
         
-        #select move
+        #select highest val node
         node = Node.getMaxFirstLayer(root)
-        move = node.move
         #Node.delTree(root)
         print(num_simulations, " simulations executed")
-        return move
+        return node.move
          
 
 class AgentType(Enum):
@@ -302,7 +302,7 @@ if __name__ == "__main__":
     t2 = time.perf_counter()
     print("program time:", t2-t)
     print(Board.TIME_IN_VALID, " seconds in valid")
-    print(Board.TIME_IN_DUP, " seconds in dup")
+    print(Board.TIME_IN_CHECK, " seconds in check")
     
    
 #     for i in range(100):

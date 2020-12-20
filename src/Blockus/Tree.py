@@ -4,7 +4,7 @@ Created on Dec 19, 2020
 @author: ian
 '''
 from math import log,sqrt
-
+from copy import copy
 '''
 MCTS tree node
 '''
@@ -25,7 +25,6 @@ class Node():
             if child.ucb_val > max:
                 max = child.ucb_val
                 maxChild = child
-        print(max)
         return Node.getMctsLeaf(maxChild)
 
     @staticmethod
@@ -47,15 +46,19 @@ class Node():
     '''
     Constructor
     '''
-    def __init__(self, state, parent, move, turnColor, initialVal=float('inf')):
-        self.state = state
+    def __init__(self, move, parent, turnColor, initialVal=float('inf')):
+        if parent != None:
+            self.moveStack = copy(parent.moveStack).append(move)
+        else:
+            self.moveStack = []
+        if self.moveStack == None:
+            self.moveStack = [move]
+        self.move = move
         self.parent = parent
         self.children = []
-        self.move = move
         self.wins = 0
         self.visits = 0
-        self.piecesUsed = []
-        self.turnColor = turnColor # denotes who made the move to get to this state
+        self.turnColor = turnColor # denotes who made the move to get to this moveStack
         self.ucb_val = initialVal
     
     def addChild(self, child):
@@ -73,7 +76,8 @@ class Node():
     def backpropogate(self, res):
         self.wins += res
         for child in self.children:
-            child.calculateUCB()
+            if child.visits > 0:
+                child.calculateUCB()
         if self.parent == None:
             return
         else:
@@ -81,7 +85,7 @@ class Node():
         
     def __str__(self):
         s = ""
-        s += str(self.move[1]) 
+        s += str(self.moveStack[-1][1]) 
         s+= "\n"
         s += "visits:{}, wins:{}".format(self.visits, self.wins)
         s += "val"

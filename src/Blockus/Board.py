@@ -14,7 +14,7 @@ from random import randint
 
 class Board():
     TIME_IN_VALID = 0
-    TIME_IN_DUP = 0
+    TIME_IN_CHECK = 0
     '''
     represents a blockus board starting from (x,y) = (0,0) in the bottom left corner
     squares are placed in self.board in row major order
@@ -64,9 +64,20 @@ class Board():
         else:
             print("unknown color")
     
+    def unaddFill(self, square):
+        if square.fillColor == Color.RED:
+            self.filledRed.remove(square)
+            
+        if square.fillColor == Color.BLUE:
+            self.filledBlue.remove(square)
+        
+        self.openSquares.append(square)
+        square.fillColor = None
+        
     
     
     def isValidMove(self, piece, x, y):
+        t = time.perf_counter()
         touches_corner = False
         for (px,py) in piece.points:
             square = self.getSquare(x + px, y + py)
@@ -84,11 +95,16 @@ class Board():
                 if neighbor.fillColor == piece.color:
                     touches_corner = True
                     break
+        t2 = time.perf_counter()
+        Board.TIME_IN_CHECK += t2-t
         return touches_corner
                 
     
-    def makeFirstMove(self, piece, x, y):
+    def makeFirstMove(self, move):
         squares = []
+        piece  = move[1]
+        x = move[2]
+        y = move[3]
         for (px,py) in piece.points:
             squares.append((x + px, y + py))
 
@@ -99,7 +115,7 @@ class Board():
                 if s == None or s.fillColor != None:
                     return False
             if (4,4) in squares:
-                self.makeMoveOnBoard(piece, x, y)
+                self.makeMoveOnBoard(move)
                 return True
             else:
                 return False
@@ -110,57 +126,100 @@ class Board():
                 if s == None or s.fillColor != None:
                     return False
             if (self.size - 5, self.size - 5) in squares:
-                self.makeMoveOnBoard(piece, x, y)
+                self.makeMoveOnBoard(move)
                 return True
             
             
     
              
-    def makeMoveOnBoard(self, perm, x, y):
+    def makeMoveOnBoard(self, move):
         #TODO: remove valid agentMove check for optimization     
         #if self.isValidMove(perm, x, y):
-        for (px,py) in perm.points:
-            square = self.getSquare(x + px, y + py)
-            square.fillColor = perm.color
+        for (px,py) in move[1].points:
+            square = self.getSquare(move[2] + px, move[3] + py)
+            square.fillColor = move[1].color
             self.addFill(square)
         return True
-#         else:
-#             print("invalid agentMove")
-#             return False  
     
     
     
     
 #     # 'agentMove' in form of (perm, permutation, x, y)
-#     def unmakeMove(self, agentMove, player):
-#         for (x,y) in agentMove[1].points:
-#             square = self.getSquare(x + agentMove[2], y + agentMove[3])
-#             if square is not None:
-#                 square.fillColor = None
-#                 player.filledSquares.remove(square)
+    def unmakeMove(self, agentMove):
+        for (x,y) in agentMove[1].points:
+            square = self.getSquare(x + agentMove[2], y + agentMove[3])
+            if square != None:
+                self.unaddFill(square)
+                
+                
     
    
-    
-    # valid agentMove returned in the form of (perm, permutation, x, y)
+    def makeMovesInStack(self, stack):
+        for move in stack:
+            self.makeMoveOnBoard(move)
+
+    def unmakeMovesInStack(self, stack):
+        for move in stack:
+            self.unmakeMove(move)
+        
+#     # valid agentMove returned in the form of (perm, permutation, x, y)
+#     def getAllValidMoves(self, pieces):
+#         t = time.perf_counter()
+#         valid_moves = []
+#         #num_considerations = 0
+#         for piece in pieces:
+#             for perm in piece.permutations:
+#                 for x in range(self.size - (perm.width - 1)): # dont check squares that are not possible
+#                     for y in range(self.size - (perm.height - 1)):
+#                         #TODO: optimize square checking
+#                         #num_considerations += 1
+#                         if self.isValidMove(perm, x, y):
+#                             valid_moves.append((piece, perm, x, y))
+#                         
+#                          
+#         t2 = time.perf_counter()
+#         Board.TIME_IN_VALID += t2-t
+#         return valid_moves
+
+    # valid move returned in the form of (perm, permutation, x, y)
     def getAllValidMoves(self, pieces):
         t = time.perf_counter()
         valid_moves = []
         #num_considerations = 0
-        for piece in pieces:
-            for perm in piece.permutations:
-                for x in range(self.size - (perm.width - 1)): # dont check squares that are not possible
-                    for y in range(self.size - (perm.height - 1)):
-                        #TODO: optimize square checking
-                        #num_considerations += 1
+        for x in range(self.size):
+            for y in range(self.size):
+                square = self.getSquare(x, y)
+                for piece in pieces:
+                    minDim = min(piece.width, piece.height)
+                    maxDim = max(piece.width, piece.height)
+                    if (x + minDim) >= self.size:
+                        continue
+                    if (y + minDim) >= self.size:
+                        continue
+#                     #check if played square within the max dimension of the piece
+#                     if piece.color == Color.RED:
+#                         within = False
+#                         for fr in self.filledRed:
+#                             if fr.within(square, maxDim, maxDim):
+#                                 within = True
+#                                 break
+#                         if not within:
+#                             continue
+#                     elif piece.color == Color.BLUE:
+#                         within = False
+#                         for fb in self.filledBlue:
+#                             if fb.within(square, maxDim, maxDim):
+#                                 within = True
+#                                 break
+#                         if not within:
+#                             continue
+                    for perm in piece.permutations:
                         if self.isValidMove(perm, x, y):
-                            valid_moves.append((piece, perm, x, y))
-                        
+                            valid_moves.append((piece, perm, x, y))                 
                          
         t2 = time.perf_counter()
         Board.TIME_IN_VALID += t2-t
         return valid_moves
-    
-    
     '''
     returns the number of filled squares for 'color'
     '''
@@ -249,16 +308,17 @@ class Board():
 if __name__ == "__main__":
     b = Board(14)        
     p = createPieces(Color.BLUE)
-    b.makeMoveOnBoard(p[0], 0, 0, True)
+    b.makeMoveOnBoard((p[0],p[0], 0, 0))
     p.remove(p[0])
     valid_moves = b.getAllValidMoves(p)
-    idx = randint(0, len(valid_moves) - 1)
-    agentMove = valid_moves[idx]
-    b.makeMoveOnBoard(agentMove[1], agentMove[2], agentMove[3], False)
+    print(len(valid_moves))
+#     idx = randint(0, len(valid_moves) - 1)
+#     agentMove = valid_moves[idx]
+#     b.makeMoveOnBoard(agentMove, False)
     #print(b.evaluateCorners(Color.BLUE))
-    print(b)
-    print(b.evaluateCorners(Color.BLUE), " corners")
-    
+#     print(b)
+#     print(b.evaluateCorners(Color.BLUE), " corners")
+#     
 #     valid_moves = b.getAllValidMoves(p)
 #     #valid_moves = t[0]
 #     f = open("results.txt", "w")

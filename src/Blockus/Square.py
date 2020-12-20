@@ -4,6 +4,7 @@ Created on Nov 20, 2020
 @author: ian
 '''
 from enum import Enum
+import math
 
 class Square():
     '''
@@ -19,7 +20,12 @@ class Square():
     def filled(self):
         return self.fillColor != None
 
-
+    def within(self, other, xdist, ydist):
+        withinx = abs(self.x - other.x) <= xdist
+        withiny = abs(self.y - other.y) <= ydist
+        return withinx and withiny
+        
+        
 
 
 class Color(Enum):
@@ -39,6 +45,12 @@ class Color(Enum):
 
 
 if __name__ == "__main__":
-    for c in Color:
-        print(c)
-    print (len(Color))
+    s = Square(0,0)
+    s1 = Square(3,2)
+    print(s.within(s1,2,2))
+#     l = [i for i in range(50)]
+#     print(l)
+#     l = [Color.RED]
+#     for c in l:
+#         print(c)
+#     #print (len(Color))
