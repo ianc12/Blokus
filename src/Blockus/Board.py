@@ -252,7 +252,7 @@ class Board():
             return corners
         
         elif color == Color.RED:
-            for square in self.filledRED:
+            for square in self.filledRed:
                 for cornerN in square.cornerNeighbors:
                     # if corner square not filled
                     if cornerN.fillColor is None:

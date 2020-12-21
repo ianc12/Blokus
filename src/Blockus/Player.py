@@ -16,19 +16,28 @@ from  Board import Board
 from Tree import Node
 
 
-MAX_TIMEOUT = 30 # seconds
+MAX_TIMEOUT = 5 # seconds
 MIN_FREE_MEM = 100 * 1024 * 1024 # 100 Megabytes
 EXPLORATION_CONSTANT = 0.7
 NUM_CORES = 4
+KEEP_MOVES = 20
 
 class Player():
     '''
     Represents a player, and holds algorithms to play or is a human
     '''
     
+    @staticmethod
+    def heuristicPre16(points, ourCorners, theirCorners):
+        return (points * 1.5) + (ourCorners * 1.5) + (theirCorners * .5)
     
     @staticmethod
-    def selectRandomMove(self, board, pieceList):
+    def heuristicPost16(points, ourCorners, theirCorners):
+        return (points * .75)+ (2 * ourCorners)  + (3 * theirCorners) 
+    
+    
+    @staticmethod
+    def selectRandomMove(board, pieceList):
         valid_moves = board.getAllValidMoves(pieceList)
         if valid_moves == []:
             # cannot make a move
@@ -72,16 +81,38 @@ class Player():
                 return self.makeMove(board, move)
         
         
+        elif (self.agentType == AgentType.MCTS_HEURISTIC_FIRST):
+            if isFirst:
+                return self.makeRandomFirstMove(board)
+            else:
+                move = None
+                if self.moveNum < 16:
+                    move = self.mctsHeuristicFirst(board, Player.heuristicPre16)
+                else:
+                    move = self.mctsHeuristicFirst(board, Player.heuristicPost16)
+                if move == None:
+                    return None
+                return self.makeMove(board, move)
         
-        elif (self.agentType == AgentType.MCTS_HEURISTIC_CONST):
-            pass
-        elif (self.agentType == AgentType.MCTS_HEURISTIC_DIFF):
-            pass
+        elif (self.agentType == AgentType.MCTS_HEURISTIC_ALWAYS):
+            if isFirst:
+                return self.makeRandomFirstMove(board)
+            else:
+                move = None
+                if self.moveNum < 16:
+                    move = self.mctsHeuristicAlways(board, Player.heuristicPre16)
+                else:
+                    move = self.mctsHeuristicAlways(board, Player.heuristicPost16)
+                if move == None:
+                    return None
+                return self.makeMove(board, move)
+       
+        
         elif (self.agentType == AgentType.RANDOM):
             if isFirst:
                 return self.makeRandomFirstMove(board)
             else:
-                m = Piece.selectRandomMove(board, self.pieces)
+                m = Player.selectRandomMove(board, self.pieces)
                 if m is None:
                     return None
                 return self.makeMove(board, m)
@@ -90,7 +121,7 @@ class Player():
             if isFirst:
                 return self.makeRandomFirstMove(board)
             else:
-                m = Piece.selectRandomMove(board, self.pieces)
+                m = Player.selectRandomMove(board, self.pieces)
                 if m is None:
                     return None
                 return self.makeMove(board, m)
@@ -148,9 +179,47 @@ class Player():
 
     
     
-    def trim(self, root, f):
-        pass
-    
+    def trim(self, board, moves, f):
+        scoredMoves = []
+        initRedCorners = board.evaluateCorners(Color.RED)
+        initBlueCorners = board.evaluateCorners(Color.BLUE)
+        for move in moves:
+            board.makeMoveOnBoard(move)
+            postRedCorners = board.evaluateCorners(Color.RED)
+            postBlueCorners = board.evaluateCorners(Color.BLUE)
+            points = move[0].size()
+            score = 0
+            if move[0].color == Color.RED:
+                #in form points, ourcorners, theircorners
+                score = f(points, postRedCorners - initRedCorners, initBlueCorners - postBlueCorners)
+            else:
+                score = f(points, postBlueCorners - initBlueCorners, initRedCorners - postRedCorners )
+            scoredMoves.append((move,score))
+            board.unmakeMove(move)
+            
+        if scoredMoves == []:
+            return []
+        
+        finalMoves = []
+        if len(scoredMoves) <= KEEP_MOVES:
+            for i in range(len(scoredMoves)):
+                finalMoves.append(scoredMoves[i][0])
+        
+            return finalMoves
+        
+        for i in range(KEEP_MOVES):
+            maxScore = float('-inf')
+            maxElement = None
+            
+            for j in range(len(scoredMoves)):
+                if scoredMoves[j][1] >  maxScore:
+                    maxScore =  scoredMoves[j][1]
+                    maxElement = scoredMoves[j][0]
+            
+            scoredMoves.remove((maxElement,maxScore))
+            finalMoves.append(maxElement)
+            
+        return finalMoves
 
 
     def getPiecesNotIn(self, l):
@@ -227,7 +296,7 @@ class Player():
             return None
         for move in initial_moves:
             #consider using piece size as first play urgency as initialVal
-            child = Node(move, root, self.color, initialVal=move[0].size())
+            child = Node(move, root, self.color, initialVal=move[0].size() * 10)
             root.addChild(child)
         
         
@@ -257,7 +326,7 @@ class Player():
             else:
                 # add all substates
                 for move in valid_moves:
-                    child = Node(move, currentNode, move[0].color)
+                    child = Node(move, currentNode, move[0].color, initialVal=move[0].size() * 10 )
                     currentNode.addChild(child)
             
             #simulation phase
@@ -274,13 +343,132 @@ class Player():
         #Node.delTree(root)
         print(num_simulations, " simulations executed")
         return node.move
-         
+    
+    
+    
+    def mctsHeuristicFirst(self, board, heuristic):
+        root = Node(None, None, None, self.opponent.color)
+        # set initial child layer
+        initial_moves = board.getAllValidMoves(self.pieces)
+        initial_moves = self.trim(board, initial_moves, heuristic)
+       
+        if initial_moves == []:
+            return None
+        for move in initial_moves:
+            #consider using piece size as first play urgency as initialVal
+            child = Node(move, root, self.color, initialVal=move[0].size() * 10)
+            root.addChild(child)
+        
+        
+        num_simulations = 0
+        startTime = time.perf_counter()
+        while(self.resourcesAvailable(startTime)):
+            #selection phase
+            currentNode = Node.getMctsLeaf(root)
+            #make board accurate for current state
+            board.makeMovesInStack(currentNode.moveStack)
+             
+            #expansion phase
+            useable_pieces = []
+            if currentNode.turnColor == self.color:
+                # opponents turn, use their pieces
+                useable_pieces = self.opponent.getPiecesNotIn(currentNode.moveStack)
+                
+            else:
+                #our turn, use our pieces
+                useable_pieces = self.getPiecesNotIn(currentNode.moveStack)
+            
+            
+            valid_moves = board.getAllValidMoves(useable_pieces)
+            if valid_moves == []:
+                #game in terminal moveStack for this player
+                pass
+            else:
+                # add all substates
+                for move in valid_moves:
+                    child = Node(move, currentNode, move[0].color, initialVal=move[0].size() * 10 )
+                    currentNode.addChild(child)
+            
+            #simulation phase
+            res = self.playoutRandomGame(currentNode, board)
+            num_simulations += 1
+            #board is returned to initial state
+            
+            #backpropogate
+            currentNode.backpropogate(res)
+        
+        
+        #select highest val node
+        node = Node.getMaxFirstLayer(root)
+        #Node.delTree(root)
+        print(num_simulations, " simulations executed")
+        return node.move
+    
+    
+    def mctsHeuristicAlways(self, board, heuristic):
+        root = Node(None, None, None, self.opponent.color)
+        # set initial child layer
+        initial_moves = board.getAllValidMoves(self.pieces)
+        initial_moves = self.trim(board, initial_moves, heuristic)
+        
+        if initial_moves == []:
+            return None
+        for move in initial_moves:
+            #consider using piece size as first play urgency as initialVal
+            child = Node(move, root, self.color, initialVal=move[0].size() * 10)
+            root.addChild(child)
+        
+        
+        num_simulations = 0
+        startTime = time.perf_counter()
+        while(self.resourcesAvailable(startTime)):
+            #selection phase
+            currentNode = Node.getMctsLeaf(root)
+            #make board accurate for current state
+            board.makeMovesInStack(currentNode.moveStack)
+             
+            #expansion phase
+            useable_pieces = []
+            if currentNode.turnColor == self.color:
+                # opponents turn, use their pieces
+                useable_pieces = self.opponent.getPiecesNotIn(currentNode.moveStack)
+                
+            else:
+                #our turn, use our pieces
+                useable_pieces = self.getPiecesNotIn(currentNode.moveStack)
+            
+            
+            valid_moves = board.getAllValidMoves(useable_pieces)
+            valid_moves = self.trim(board, valid_moves, heuristic)
+            if valid_moves == []:
+                #game in terminal moveStack for this player
+                pass
+            else:
+                # add all substates
+                for move in valid_moves:
+                    child = Node(move, currentNode, move[0].color, initialVal=move[0].size() * 10 )
+                    currentNode.addChild(child)
+            
+            #simulation phase
+            res = self.playoutRandomGame(currentNode, board)
+            num_simulations += 1
+            #board is returned to initial state by the playout function
+            
+            #backpropogate
+            currentNode.backpropogate(res)
+        
+        
+        #select highest val node
+        node = Node.getMaxFirstLayer(root)
+        #Node.delTree(root)
+        print(num_simulations, " simulations executed")
+        return node.move    
 
 class AgentType(Enum):
     HUMAN = 1
     MCTS_NORM = 2
-    MCTS_HEURISTIC_CONST = 3
-    MCTS_HEURISTIC_DIFF = 4
+    MCTS_HEURISTIC_FIRST = 3
+    MCTS_HEURISTIC_ALWAYS = 4
     MCTS_ALT = 5
     RANDOM = 6   
     
@@ -289,7 +477,9 @@ class AgentType(Enum):
 if __name__ == "__main__":
     t = time.perf_counter()
     board = Board(14)
-    playerBlue = Player(Color.BLUE, AgentType.MCTS_NORM)
+    playerBlue = Player(Color.BLUE, AgentType.MCTS_HEURISTIC_ALWAYS)
+    #playerBlue = Player(Color.BLUE, AgentType.MCTS_NORM)
+    
     playerRed = Player(Color.RED, AgentType.RANDOM)
     playerBlue.opponent = playerRed
     playerRed.opponent = playerBlue

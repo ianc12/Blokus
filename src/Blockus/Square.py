@@ -48,6 +48,10 @@ if __name__ == "__main__":
     s = Square(0,0)
     s1 = Square(3,2)
     print(s.within(s1,2,2))
+    
+    l = [(s,6), (s1,9)]
+    l.remove((s,6))
+    print(l)
 #     l = [i for i in range(50)]
 #     print(l)
 #     l = [Color.RED]

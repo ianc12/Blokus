@@ -33,7 +33,7 @@ class Node():
         maxChild = None
         for child in root.children:
             #print(child)
-            if child.ucb_val > max and child.ucb_val < float('inf'):
+            if child.ucb_val > max and child.visits > 0:
                 max = child.ucb_val
                 maxChild = child
         return maxChild
@@ -82,6 +82,8 @@ class Node():
             return
         else:
             self.parent.backpropogate(res)
+    
+    
         
     def __str__(self):
         s = ""

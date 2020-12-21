@@ -15,7 +15,7 @@ def printUsage():
         boardSize: length of board (borad is a square)\n
         BluePlayerAgentType: member of AgentTypes\n
         RedPlayerAgentType: member of AgentTypes\n
-        AgentTypes: human, random, mctsNorm, mctsHeuristicConst, mctsHeuristicDiff, mctsAlt''')
+        AgentTypes: human, random, mctsNorm, mctsHeuristicFirst, mctsHeuristicAlways, mctsAlt''')
            
 
 def getAgentType(string):
@@ -25,10 +25,10 @@ def getAgentType(string):
         return AgentType.RANDOM
     elif string == "mctsNorm":
         return AgentType.MCTS_NORM
-    elif string == "mctsHeuristicConst":
-        return AgentType.MCTS_HEURISTIC_CONST
-    elif string == "mctsHeuristicDiff":
-        return AgentType.MCTS_HEURISTIC_DIFF
+    elif string == "mctsHeuristicFirst":
+        return AgentType.MCTS_HEURISTIC_FIRST
+    elif string == "mctsHeuristicAlways":
+        return AgentType.MCTS_HEURISTIC_ALWAYS
     elif string == "mctsAlt":
         return AgentType.MCTS_ALT
     else:
@@ -59,6 +59,7 @@ def main():
     while(True):
         blueMove = playerBlue.agentMove(board, False)
         redMove = playerRed.agentMove(board, False)
+        print(board)
         if blueMove == None and redMove == None:
             break;
     
@@ -82,5 +83,4 @@ def main():
 
 
 if __name__ == '__main__':
-    for (i in range(100)):
-        main()
+    main()
