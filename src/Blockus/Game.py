@@ -17,7 +17,7 @@ def printUsage():
         boardSize: length of board (borad is a square)\n
         BluePlayerAgentType: member of AgentTypes\n
         RedPlayerAgentType: member of AgentTypes\n
-        AgentTypes: human, random, mctsNorm, mctsHeuristicFirst, mctsHeuristicAlways, mctsAlt''')
+        AgentTypes: human, random, mctsNorm, mctsHeuristicFirst, mctsHeuristicAlways''')
            
 
 def getAgentType(string):
@@ -31,8 +31,8 @@ def getAgentType(string):
         return AgentType.MCTS_HEURISTIC_FIRST
     elif string == "mctsHeuristicAlways":
         return AgentType.MCTS_HEURISTIC_ALWAYS
-    elif string == "mctsAlt":
-        return AgentType.MCTS_ALT
+#     elif string == "mctsAlt":
+#         return AgentType.MCTS_ALT
     else:
         print("Unknown agent type, using RANDOM")
         return AgentType.RANDOM
@@ -155,41 +155,41 @@ def test():
 def full():
     jobs = []
     # 10 second think times
-    x = multiprocessing.Process(target=experiment, args=(1, 30, AgentType.MCTS_NORM, AgentType.MCTS_HEURISTIC_FIRST, 10,))
-    jobs.append(x)
-    x.start()
-    
-    x = multiprocessing.Process(target=experiment, args=(2, 30, AgentType.MCTS_NORM, AgentType.MCTS_HEURISTIC_ALWAYS, 10,))
-    jobs.append(x)
-    x.start()
-    
-    x = multiprocessing.Process(target=experiment, args=(3, 30, AgentType.MCTS_FIRST, AgentType.MCTS_HEURISTIC_ALWAYS, 10,))
-    jobs.append(x)
-    x.start()
-    
-    # 20 second think times
-    x = multiprocessing.Process(target=experiment, args=(4, 30, AgentType.MCTS_NORM, AgentType.MCTS_HEURISTIC_FIRST, 20,))
-    jobs.append(x)
-    x.start()
-    
-    x = multiprocessing.Process(target=experiment, args=(5, 30, AgentType.MCTS_NORM, AgentType.MCTS_HEURISTIC_ALWAYS, 20,))
-    jobs.append(x)
-    x.start()
-    
-    x = multiprocessing.Process(target=experiment, args=(6, 30, AgentType.MCTS_FIRST, AgentType.MCTS_HEURISTIC_ALWAYS, 20,))
-    jobs.append(x)
-    x.start()
-    
-    # 30 second think times
-#     x = multiprocessing.Process(target=experiment, args=(1, 30, AgentType.MCTS_NORM, AgentType.MCTS_HEURISTIC_FIRST, 30,))
+#     x = multiprocessing.Process(target=experiment, args=(1, 30, AgentType.MCTS_NORM, AgentType.MCTS_HEURISTIC_FIRST, 10,))
+#     jobs.append(x)
+#     x.start()
+#     
+#     x = multiprocessing.Process(target=experiment, args=(2, 30, AgentType.MCTS_NORM, AgentType.MCTS_HEURISTIC_ALWAYS, 10,))
+#     jobs.append(x)
+#     x.start()
+#     
+#     x = multiprocessing.Process(target=experiment, args=(3, 30, AgentType.MCTS_FIRST, AgentType.MCTS_HEURISTIC_ALWAYS, 10,))
+#     jobs.append(x)
+#     x.start()
+#     
+#     # 20 second think times
+#     x = multiprocessing.Process(target=experiment, args=(4, 30, AgentType.MCTS_NORM, AgentType.MCTS_HEURISTIC_FIRST, 20,))
+#     jobs.append(x)
+#     x.start()
+#     
+#     x = multiprocessing.Process(target=experiment, args=(5, 30, AgentType.MCTS_NORM, AgentType.MCTS_HEURISTIC_ALWAYS, 20,))
+#     jobs.append(x)
+#     x.start()
+#     
+#     x = multiprocessing.Process(target=experiment, args=(6, 30, AgentType.MCTS_FIRST, AgentType.MCTS_HEURISTIC_ALWAYS, 20,))
 #     jobs.append(x)
 #     x.start()
     
-    x = multiprocessing.Process(target=experiment, args=(7, 30, AgentType.MCTS_NORM, AgentType.MCTS_HEURISTIC_ALWAYS, 30,))
+    #30 second think times
+    x = multiprocessing.Process(target=experiment, args=(7, 30, AgentType.MCTS_NORM, AgentType.MCTS_HEURISTIC_FIRST, 30,))
     jobs.append(x)
     x.start()
     
-    x = multiprocessing.Process(target=experiment, args=(8, 30, AgentType.MCTS_FIRST, AgentType.MCTS_HEURISTIC_ALWAYS, 10,))
+#     x = multiprocessing.Process(target=experiment, args=(7, 30, AgentType.MCTS_NORM, AgentType.MCTS_HEURISTIC_ALWAYS, 30,))
+#     jobs.append(x)
+#     x.start()
+    
+    x = multiprocessing.Process(target=experiment, args=(9, 30, AgentType.MCTS_HEURISTIC_FIRST, AgentType.MCTS_HEURISTIC_ALWAYS, 30,))
     jobs.append(x)
     x.start()
     
@@ -203,7 +203,9 @@ def full():
 
 
 if __name__ == '__main__':
-    test()
+    #full()
+    sys.setrecursionlimit(10000)
+    main()
     
     
     
