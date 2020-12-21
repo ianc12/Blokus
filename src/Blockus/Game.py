@@ -7,9 +7,11 @@ from Player import Player, AgentType
 from Board import Board
 from Square import Color
 import sys
+import multiprocessing
 
-'''
-'''
+
+CORES = 4
+
 def printUsage():
     print('''Usage: run with 3 args - \n
         boardSize: length of board (borad is a square)\n
@@ -45,8 +47,8 @@ def main():
     board = Board(int(args[1]))
 
     # Blue Goes First
-    playerBlue = Player(Color.BLUE, getAgentType(args[2]))
-    playerRed = Player(Color.RED, getAgentType(args[3]))
+    playerBlue = Player(Color.BLUE, getAgentType(args[2]), 30)
+    playerRed = Player(Color.RED, getAgentType(args[3]), 30)
     playerBlue.opponent = playerRed
     playerRed.opponent = playerBlue
     
@@ -78,9 +80,141 @@ def main():
     print("done")
         
         
+def play(blueAgent, redAgent, thinkTime):
+    board = Board(14)
+
+    # Blue Goes First
+    playerBlue = Player(Color.BLUE, blueAgent, thinkTime)
+    playerRed = Player(Color.RED, redAgent, thinkTime)
+    playerBlue.opponent = playerRed
+    playerRed.opponent = playerBlue
+    
+    playerBlue.agentMove(board, True)
+    playerRed.agentMove(board, True)
+    
+    while(True):
+        blueMove = playerBlue.agentMove(board, False)
+        redMove = playerRed.agentMove(board, False)
+        if blueMove == None and redMove == None:
+            break;
+    
+    blueScore = playerBlue.evaluateScore(board)
+    redScore = playerRed.evaluateScore(board)
+    return (blueScore, redScore)
+
+
+
+def experiment(expNo, games, blueAgent, redAgent, thinkTime):
+    fname = "expNO{}_{}_vs_{}_think_{}.txt".format(expNo, str(blueAgent), str(redAgent), thinkTime)
+    f = open(fname, "w")
+    blueWins = 0
+    redWins = 0
+    ties = 0
+    blueTotalScore = 0
+    redTotalScore = 0
+    for i in range(games):
+        results = play(blueAgent, redAgent, thinkTime)
+        blueScore = results[0]
+        redScore = results[1]
+        blueTotalScore += blueScore
+        redTotalScore += redScore
+        if blueScore > redScore:
+            blueWins += 1
+        elif blueScore < redScore:
+            redWins += 1
+        else:
+            ties += 1
+    
+        f.write("Game {}: blueScore:{} \t redScore:{}\n".format(i, blueScore, redScore))
         
     
+    
+    
+    f.write("_________FINAL RESULTS____________\n")
+    f.write("Blue({}) win percent: {}\n".format(str(blueAgent), blueWins/games))
+    f.write("Red({}) win percent: {}\n".format(str(redAgent), redWins/games))
+    f.write("Ties:{}\n".format(ties))
+    f.write("Blue average score: {}\n".format(blueTotalScore/games))
+    f.write("Red average score: {}\n".format(redTotalScore/games))
+    f.close()
+
+
+def test():
+    jobs = []
+    x = multiprocessing.Process(target=experiment, args=(1, 2, AgentType.MCTS_NORM, AgentType.MCTS_HEURISTIC_FIRST, 2,))
+    jobs.append(x)
+    x.start()
+    x = multiprocessing.Process(target=experiment, args=(1, 2, AgentType.MCTS_NORM, AgentType.MCTS_HEURISTIC_ALWAYS, 2,))
+    jobs.append(x)
+    x.start()
+    
+    for j in jobs:
+        j.join()
+    print("done")
+
+def full():
+    jobs = []
+    # 10 second think times
+    x = multiprocessing.Process(target=experiment, args=(1, 30, AgentType.MCTS_NORM, AgentType.MCTS_HEURISTIC_FIRST, 10,))
+    jobs.append(x)
+    x.start()
+    
+    x = multiprocessing.Process(target=experiment, args=(2, 30, AgentType.MCTS_NORM, AgentType.MCTS_HEURISTIC_ALWAYS, 10,))
+    jobs.append(x)
+    x.start()
+    
+    x = multiprocessing.Process(target=experiment, args=(3, 30, AgentType.MCTS_FIRST, AgentType.MCTS_HEURISTIC_ALWAYS, 10,))
+    jobs.append(x)
+    x.start()
+    
+    # 20 second think times
+    x = multiprocessing.Process(target=experiment, args=(4, 30, AgentType.MCTS_NORM, AgentType.MCTS_HEURISTIC_FIRST, 20,))
+    jobs.append(x)
+    x.start()
+    
+    x = multiprocessing.Process(target=experiment, args=(5, 30, AgentType.MCTS_NORM, AgentType.MCTS_HEURISTIC_ALWAYS, 20,))
+    jobs.append(x)
+    x.start()
+    
+    x = multiprocessing.Process(target=experiment, args=(6, 30, AgentType.MCTS_FIRST, AgentType.MCTS_HEURISTIC_ALWAYS, 20,))
+    jobs.append(x)
+    x.start()
+    
+    # 30 second think times
+#     x = multiprocessing.Process(target=experiment, args=(1, 30, AgentType.MCTS_NORM, AgentType.MCTS_HEURISTIC_FIRST, 30,))
+#     jobs.append(x)
+#     x.start()
+    
+    x = multiprocessing.Process(target=experiment, args=(7, 30, AgentType.MCTS_NORM, AgentType.MCTS_HEURISTIC_ALWAYS, 30,))
+    jobs.append(x)
+    x.start()
+    
+    x = multiprocessing.Process(target=experiment, args=(8, 30, AgentType.MCTS_FIRST, AgentType.MCTS_HEURISTIC_ALWAYS, 10,))
+    jobs.append(x)
+    x.start()
+    
+#     x = multiprocessing.Process(target=experiment, args=(1, 2, AgentType.MCTS_NORM, AgentType.MCTS_HEURISTIC_FIRST, 2,))
+#     jobs.append(x)
+#     x.start()
+    for j in jobs:
+        j.join()
+    print("done")
+
 
 
 if __name__ == '__main__':
-    main()
+    test()
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

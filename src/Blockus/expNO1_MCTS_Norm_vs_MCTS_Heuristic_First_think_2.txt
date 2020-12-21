@@ -1,0 +1,8 @@
+Game 0: blueScore:-5 	 redScore:13
+Game 1: blueScore:11 	 redScore:43
+_________FINAL RESULTS____________
+Blue(MCTS_Norm) win percent: 0.0
+Red(MCTS_Heuristic_First) win percent: 1.0
+Ties:0
+Blue average score: 3.0
+Red average score: 28.0

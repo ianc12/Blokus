@@ -46,25 +46,28 @@ class Player():
         return valid_moves[idx]
 
     
-    @staticmethod
-    def resourcesAvailable(start):
+
+
+
+    def __init__(self, color, agentType, thinkTime):
+        self.color = color
+        self.agentType = agentType
+        self.pieces = createPieces(self.color)
+        self.opponent = None
+        self.thinkTime = thinkTime
+        self.moveNum = 1
+        
+    
+    
+    def resourcesAvailable(self, start):
         t = time.perf_counter()
-        if (t > (start + MAX_TIMEOUT)):
+        if (t > (start + self.thinkTime)):
             return False
         mem = psutil.virtual_memory()
         if mem.available <= MIN_FREE_MEM:
             return False
         
         return True
-
-
-    def __init__(self, color, agentType):
-        self.color = color
-        self.agentType = agentType
-        self.pieces = createPieces(self.color)
-        self.opponent = None
-        self.moveNum = 1
-        
     
     def agentMove(self, board, isFirst):
         if (self.agentType == AgentType.HUMAN):
@@ -138,7 +141,7 @@ class Player():
     #TODO: add extra 5 if last piece is single square and played all pieces
     def evaluateScore(self, board):
         score = board.evaluateScore(self.color)
-        print(self.color, ": {} Tiles Played".format(score))
+        #print(self.color, ": {} Tiles Played".format(score))
         if len(self.pieces) == 0:
             #15 bonus points if you play all pieces
             score += 15
@@ -161,16 +164,15 @@ class Player():
             p = fives[i]
             for perm in p.permutations:
                 if self.color == Color.RED:
-                    #TODO: investigate disadvantage for RED or elimintate based on center control
-                    if board.makeFirstMove((p, perm, board.size - 5, board.size - 5) ):
+                    if board.makeFirstMove((p, perm, board.size - 6, board.size - 6) ):
                         self.pieces.remove(p)
                         self.moveNum += 1
-                        print("GLHF!")
+                        #print("GLHF!")
                         return p
                 else:
                     if board.makeFirstMove((p,perm, 4, 4)):
                         self.pieces.remove(p)
-                        print("GLHF!")
+                        #print("GLHF!")
                         self.moveNum += 1
                         return p
              
@@ -341,7 +343,7 @@ class Player():
         #select highest val node
         node = Node.getMaxFirstLayer(root)
         #Node.delTree(root)
-        print(num_simulations, " simulations executed")
+        #print(num_simulations, " simulations executed")
         return node.move
     
     
@@ -401,7 +403,7 @@ class Player():
         #select highest val node
         node = Node.getMaxFirstLayer(root)
         #Node.delTree(root)
-        print(num_simulations, " simulations executed")
+        #print(num_simulations, " simulations executed")
         return node.move
     
     
@@ -461,7 +463,7 @@ class Player():
         #select highest val node
         node = Node.getMaxFirstLayer(root)
         #Node.delTree(root)
-        print(num_simulations, " simulations executed")
+        #print(num_simulations, " simulations executed")
         return node.move    
 
 class AgentType(Enum):
@@ -471,6 +473,19 @@ class AgentType(Enum):
     MCTS_HEURISTIC_ALWAYS = 4
     MCTS_ALT = 5
     RANDOM = 6   
+    def __str__(self):
+        if self == AgentType.HUMAN:
+            return "Human"
+        if self == AgentType.MCTS_HEURISTIC_FIRST:
+            return "MCTS_Heuristic_First"
+        if self == AgentType.MCTS_HEURISTIC_ALWAYS:
+            return "MCTS_Heuristic_Always"
+        if self == AgentType.MCTS_NORM:
+            return "MCTS_Norm"
+        if self == AgentType.RANDOM:
+            return "Rsandom"
+        else:
+            return "James Bond"
     
 
 
