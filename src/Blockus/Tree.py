@@ -10,7 +10,7 @@ MCTS tree node
 '''
 class Node():
     
-    
+
     '''
     Picks path with highest ucb_value, returns highest val leaf along that path
     '''
@@ -97,17 +97,22 @@ class Node():
         
     
 if __name__ == "__main__":
-    root = Node(0,None,None)
-    for i in range(1, 101):
-        n = Node(i, root, None)
-        n.ucb_val = i
-        for x in range(0,101):
-            nc = Node(i+x, n, None)
-            nc.ucb_val = 2*x + i
-            n.addChild(nc)
-        root.addChild(n)
-        
-    root.children[56].ucb_val = 1000
-    c = Node.getMctsLeaf(root)
-    print(c.ucb_val)
-    print(float('inf') > float('inf'))    
+    n = Node(None,None,None,None)
+    n.C = 6
+    x = Node(None,None,None,None)
+    x.C = 9
+    print(x.C, n.C)
+#     root = Node(0,None,None)
+#     for i in range(1, 101):
+#         n = Node(i, root, None)
+#         n.ucb_val = i
+#         for x in range(0,101):
+#             nc = Node(i+x, n, None)
+#             nc.ucb_val = 2*x + i
+#             n.addChild(nc)
+#         root.addChild(n)
+#         
+#     root.children[56].ucb_val = 1000
+#     c = Node.getMctsLeaf(root)
+#     print(c.ucb_val)
+#     print(float('inf') > float('inf'))    

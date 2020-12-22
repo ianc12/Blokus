@@ -490,12 +490,12 @@ class AgentType(Enum):
 
 
 if __name__ == "__main__":
-    t = time.perf_counter()
+    t = time.process_time()
     board = Board(14)
-    playerBlue = Player(Color.BLUE, AgentType.MCTS_HEURISTIC_ALWAYS)
+    playerBlue = Player(Color.BLUE, AgentType.MCTS_HEURISTIC_ALWAYS, 10)
     #playerBlue = Player(Color.BLUE, AgentType.MCTS_NORM)
     
-    playerRed = Player(Color.RED, AgentType.RANDOM)
+    playerRed = Player(Color.RED, AgentType.RANDOM, 30)
     playerBlue.opponent = playerRed
     playerRed.opponent = playerBlue
     
@@ -504,7 +504,7 @@ if __name__ == "__main__":
     print(board)
     playerBlue.agentMove(board, False)
     print(board)
-    t2 = time.perf_counter()
+    t2 = time.process_time()
     print("program time:", t2-t)
     print(Board.TIME_IN_VALID, " seconds in valid")
     print(Board.TIME_IN_CHECK, " seconds in check")

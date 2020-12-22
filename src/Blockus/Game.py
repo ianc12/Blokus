@@ -113,9 +113,18 @@ def experiment(expNo, games, blueAgent, redAgent, thinkTime):
     blueTotalScore = 0
     redTotalScore = 0
     for i in range(games):
-        results = play(blueAgent, redAgent, thinkTime)
-        blueScore = results[0]
-        redScore = results[1]
+        results = None
+        blueScore = 0
+        redScore = 0
+        if i%2 == 0:
+            results = play(blueAgent, redAgent, thinkTime)
+            blueScore = results[0]
+            redScore = results[1]
+        else:
+            results = play(redAgent, blueAgent, thinkTime)
+            blueScore = results[1]
+            redScore = results[0]
+        
         blueTotalScore += blueScore
         redTotalScore += redScore
         if blueScore > redScore:

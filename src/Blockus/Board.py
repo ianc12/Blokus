@@ -183,7 +183,7 @@ class Board():
 
     # valid move returned in the form of (perm, permutation, x, y)
     def getAllValidMoves(self, pieces):
-        t = time.perf_counter()
+        t = time.process_time()
         valid_moves = []
         #num_considerations = 0
         for x in range(self.size):
@@ -217,7 +217,7 @@ class Board():
                         if self.isValidMove(perm, x, y):
                             valid_moves.append((piece, perm, x, y))                 
                          
-        t2 = time.perf_counter()
+        t2 = time.process_time()
         Board.TIME_IN_VALID += t2-t
         return valid_moves
     '''
