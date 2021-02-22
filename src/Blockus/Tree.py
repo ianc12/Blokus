@@ -3,8 +3,10 @@ Created on Dec 19, 2020
 
 @author: ian
 '''
+
 from math import log,sqrt
 from copy import copy
+
 '''
 MCTS tree node
 '''
